@@ -3,15 +3,13 @@
 import time
 import serial
 import re
-      
+import urllib2
   
 ser = serial.Serial(
-          
   port='/dev/serial0',
   baudrate = 19200,
   timeout=10
 )
-counter=0
 
 print "Sending reset"
 ser.write("!\r\n")
@@ -28,6 +26,7 @@ while 1:
     value = re.sub('(c)', '', splitline[3])
     print "Label:", label
     print "Value:", value
+    urllib2.urlopen("http://localhost/iot/iotstore.php?id=" + label + "&set=" + value).read()
   else:
     print "Waiting..."
 
