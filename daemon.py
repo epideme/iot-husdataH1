@@ -2,6 +2,7 @@
 
 import time
 import serial
+import re
       
   
 ser = serial.Serial(
@@ -18,7 +19,11 @@ ser.write('XP\r\n')
 time.sleep(2)
   
 while 1:
-  x=ser.readline()
-  print x
+  line=ser.readline()
+  splitline=line.split(' ')
+  label=splitline[2]
+  value = re.sub('(c)', '', splitline[3])
+  print "Label:", label
+  print "Value:", value
   print "."
 
