@@ -16,10 +16,10 @@ ser = serial.Serial(
 
 print "Sending reset"
 ser.write("!\r\n")
-time.sleep(2)
+time.sleep(10)
 print "Toggle readable output"
 ser.write("XP\r\n")
-time.sleep(2)
+time.sleep(10)
 ser.flushInput()  
 while 1:
   line=ser.readline()
@@ -27,14 +27,15 @@ while 1:
   if line:
     splitline=line.split(' (')
     label=splitline[0].split(' ')
-    label='+'.join(label[2:])
-    label=re.sub('/', '+', label)
-    value = re.sub('[c\) ]', '', splitline[1])
-    print "Label:", label
-    print "Value:", value
-    url="http://" + servername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
-    print url
-    urllib2.urlopen(url).read()
+    label='+'.join(label[3:])
+    if label:
+      label=re.sub('/', '+', label)
+      value = re.sub('[pcd\) %]', '', splitline[1])
+      print "Label:", label
+      print "Value:", value
+      url="http://" + servername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
+      print url
+      urllib2.urlopen(url).read()
   else:
     print "Waiting..."
 
