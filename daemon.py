@@ -4,6 +4,8 @@ import time
 import serial
 import re
 import urllib2
+from subprocess import call
+import os.path
 
 # Server name of iot server
 servername="homepi"
@@ -68,11 +70,21 @@ while 1:
       label=re.sub(',', '', label)
       value = re.sub('[hpcd\) %]', '', splitline[1])
       if value:
-        print "Label:", label
-        print "Value:", value
+        #print "Label:", label
+        #print "Value:", value
         url="http://" + servername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
-        print url
+        #print url
         urllib2.urlopen(url).read()
   else:
     print "Waiting..."
+    if os.path.exists("/tmp/hpcommand.txt"):
+      file = open("/tmp/hpcommand.txt", "r")
+      sendcommand=file.read(10) + "\r"
+      print "Writing command: " + sendcommand
+      ser.write(sendcommand)
+      line=ser.readline()
+      line=re.sub('[\n\r]', '', line)
+      print line
+      file.close()
+      call(["rm", "/tmp/hpcommand.txt"])
 
