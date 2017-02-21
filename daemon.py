@@ -61,7 +61,7 @@ while 1:
     splitline=line.split(' (')
     labels=splitline[0].split(' ')
     label=labels[4:]
-    label.insert(0,labels[0][:6])
+    label.insert(0,labels[0][2:6])
     label='+'.join(label)
     if label:
       label=re.sub('/', '+', label)
