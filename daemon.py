@@ -65,7 +65,8 @@ while 1:
     label='+'.join(label)
     if label:
       label=re.sub('/', '+', label)
-      value = re.sub('[hpcd\) %,]', '', splitline[1])
+      label=re.sub(',', '', label)
+      value = re.sub('[hpcd\) %]', '', splitline[1])
       if value:
         print "Label:", label
         print "Value:", value
