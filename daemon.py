@@ -16,26 +16,62 @@ ser = serial.Serial(
 
 print "Sending reset"
 ser.write("!\r\n")
-time.sleep(10)
+time.sleep(2)
+line=ser.readline()
+line=re.sub('[\n\r]', '', line)
+print line
+while line:
+  line=ser.readline()
+  line=re.sub('[\n\r]', '', line)
+  print line
+
 print "Toggle readable output"
 ser.write("XP\r\n")
-time.sleep(10)
-ser.flushInput()  
+line=ser.readline()
+line=re.sub('[\n\r]', '', line)
+print line
+while line:
+  line=ser.readline()
+  line=re.sub('[\n\r]', '', line)
+  print line
+print "Toggle heatpump specific output"
+ser.write("XS\r\n")
+line=ser.readline()
+line=re.sub('[\n\r]', '', line)
+print line
+while line:
+  line=ser.readline()
+  line=re.sub('[\n\r]', '', line)
+  print line
+print "Toggle scheduled full output"
+ser.write("XM\r\n")
+line=ser.readline()
+line=re.sub('[\n\r]', '', line)
+print line
+while line:
+  line=ser.readline()
+  line=re.sub('[\n\r]', '', line)
+  print line
 while 1:
   line=ser.readline()
+  line=re.sub('[\n\r]', '', line)
+  print line
   # line="XP00001234 005 Brine in/Evaporator (11.7c)"
   if line:
     splitline=line.split(' (')
-    label=splitline[0].split(' ')
-    label='+'.join(label[3:])
+    labels=splitline[0].split(' ')
+    label=labels[4:]
+    label.insert(0,labels[0][:6])
+    label='+'.join(label)
     if label:
       label=re.sub('/', '+', label)
-      value = re.sub('[pcd\) %]', '', splitline[1])
-      print "Label:", label
-      print "Value:", value
-      url="http://" + servername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
-      print url
-      urllib2.urlopen(url).read()
+      value = re.sub('[hpcd\) %,]', '', splitline[1])
+      if value:
+        print "Label:", label
+        print "Value:", value
+        url="http://" + servername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
+        print url
+        urllib2.urlopen(url).read()
   else:
     print "Waiting..."
 
