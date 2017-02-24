@@ -81,6 +81,9 @@ while 1:
           line=ser.readline()
           line=re.sub('[\n\r]', '', line)
           print line
+	  if line[:4]=="XW00":
+            waitingreply=0
+            line="XW01"
         while (line and waitingreply):
           line=ser.readline()
           line=re.sub('[\n\r]', '', line)
