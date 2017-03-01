@@ -37,13 +37,13 @@ elif (roomtemp >= wanttemp+0.6):
 elif (roomtemp >= wanttemp+0.3):
   newcurve = basecurve-1
   print "Set curve: " + str(newcurve)
-elif (roomtemp <= wanttemp-1):
+elif (roomtemp <= wanttemp-0.7):
   newcurve = basecurve+3
   print "Set curve: " + str(newcurve)
-elif (roomtemp <= wanttemp-0.6):
+elif (roomtemp <= wanttemp-0.4):
   newcurve = basecurve+2
   print "Set curve: " + str(newcurve)
-elif (roomtemp <= wanttemp-0.3):
+elif (roomtemp <= wanttemp-0.1):
   newcurve = basecurve+1
   print "Set curve: " + str(newcurve)
 else:
