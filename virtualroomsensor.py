@@ -50,6 +50,10 @@ else:
   newcurve = basecurve
   print "Using base curve: " + str(int(newcurve))
 
-text_file = open("/tmp/hpcommand.txt", "w")
-text_file.write("0205 %s" % str(int(newcurve)))
-text_file.close()
+if setcurve <> newcurve:
+  text_file = open("/tmp/hpcommand.txt", "w")
+  text_file.write("0205 %s" % str(int(newcurve)))
+  text_file.close()
+  print "Command queued"
+else:
+  print "Curve unchanged"
