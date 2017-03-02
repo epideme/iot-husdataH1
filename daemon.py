@@ -8,7 +8,7 @@ from subprocess import call
 import os.path
 
 # Server name of iot server
-servername="homepi"
+servername="apps01"
 
 ser = serial.Serial(
   port='/dev/serial0',
