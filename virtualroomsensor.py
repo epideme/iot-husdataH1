@@ -21,19 +21,19 @@ print "Want temp: " + str(wanttemp)
 print "Current  : " + str(roomtemp)
 
 if (roomtemp >= wanttemp+1):
-  newtemp = wanttemp-2
+  newtemp = round(wanttemp,0)-2
   print "Set low  : " + str(newtemp)
 elif (roomtemp >= wanttemp+0.5):
-  newtemp = wanttemp-1
+  newtemp = round(wanttemp,0)-1
   print "Set low  : " + str(newtemp)
 elif (roomtemp >= wanttemp+0.2):
-  newtemp = wanttemp
+  newtemp = round(wanttemp,0)
   print "Set norm : " + str(newtemp)
 elif (roomtemp <= wanttemp-0.5):
-  newtemp = wanttemp+2
+  newtemp = round(wanttemp,0)+2
   print "Set high : " + str(newtemp)
 elif (roomtemp <= wanttemp):
-  newtemp = wanttemp+1
+  newtemp = round(wanttemp,0)+1
   print "Set high : " + str(newtemp)
 else:
   newtemp = int(settemp)
