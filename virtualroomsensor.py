@@ -6,13 +6,15 @@ wanttemp=20
 
 roomtempdevice="HTTP_Device_sensorMultilevel_122"
 settempdevice="HeatPump+0203+Room+temp+setpoint"
-
+wanttempdevice="Wanted+Indoor+Temperature"
 servername="apps01"
 
 url="http://" + servername + "/iot/iotread.php?id=" + roomtempdevice
 roomtemp=float(urllib2.urlopen(url).read())
 url="http://" + servername + "/iot/iotread.php?id=" + settempdevice
 settemp=float(urllib2.urlopen(url).read())
+url="http://" + servername + "/iot/iotread.php?id=" + wanttempdevice
+wanttemp=float(urllib2.urlopen(url).read())
 
 print "Set temp : " + str(int(settemp))
 print "Want temp: " + str(wanttemp) 
