@@ -3,12 +3,24 @@
 import time
 import serial
 import re
-import urllib2
 from subprocess import call
 import os.path
+import paho.mqtt.client as mqtt
+import urllib2
 
-# Server name of iot server
-servername="apps01"
+# Server name of iot server and mqtt server
+# Leave one empty to ignore
+httpservername="homepi"
+mqttservername="homepi"
+mqttuser="pi"
+mqttpassword="password"
+mqtttopic="heatpump"
+
+if mqttservername:
+  mqttc = mqtt.Client(mqtttopic)
+  mqttc.username_pw_set(mqttuser, mqttpassword)
+  mqttc.connect(mqttservername)
+  mqttc.loop_start()
 
 ser = serial.Serial(
   port='/dev/serial0',
@@ -61,8 +73,11 @@ while 1:
       label=re.sub(',', '', label)
       value = re.sub('[hpcd\) %]', '', splitline[1])
       if value:
-        url="http://" + servername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
-        urllib2.urlopen(url).read()
+        if mqttservername:
+          mqttc.publish(mqtttopic + "/" + labels[0][2:6], value)
+	if httpservername:
+          url="http://" + httpservername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
+          urllib2.urlopen(url).read()
   else:
     if os.path.exists("/tmp/hpcommand.txt"):
       file = open("/tmp/hpcommand.txt", "r")
