@@ -13,7 +13,7 @@ import urllib2
 httpservername="homepi"
 mqttservername="homepi"
 mqttuser="pi"
-mqttpassword="password"
+mqttpassword="raspberry"
 mqtttopic="heatpump"
 
 if mqttservername:
