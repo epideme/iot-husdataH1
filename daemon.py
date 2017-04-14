@@ -16,9 +16,56 @@ mqttuser="pi"
 mqttpassword="raspberry"
 mqtttopic="heatpump"
 
+def on_connect(client, userdata, rc):
+    print("Connected MQTT with status " + str(rc))
+    client.subscribe(mqtttopic + '/command/#')
+
+def on_message_mode(client, userdata, msg):
+    print("Received mode ")
+    print(msg.topic + ": " + str(msg.payload))
+    command = msg.payload.decode("utf-8").lower()
+    handle_mode(command)
+
+def on_message_temp(client, userdata, msg):
+    print("Received temp ")
+    print(msg.topic + ": " + str(msg.payload))
+    command = msg.payload.decode("utf-8").lower()
+    write_commandfile('0203 ' + command)
+    mqttc.publish(mqtttopic + "/status/temp", int(float(command)))
+
+def on_message(client, userdata, msg):
+    print("Received unknown command ")
+    print(msg.topic + ": " + str(msg.payload))
+
+def handle_mode(command):
+    if 'auto' == command:
+        print("Set mode auto")
+        write_commandfile('2201 1')
+        mqttc.publish(mqtttopic + "/status/mode", "auto")
+    elif 'water' == command:
+        print("Set mode water")
+        write_commandfile('2201 4')
+        mqttc.publish(mqtttopic + "/status/mode", "water")
+    elif 'off' == command:
+        print("Set mode off")
+        write_commandfile('2201 0')
+        mqttc.publish(mqtttopic + "/status/mode", "off")
+    else:
+        print("Unknown command!")
+
+def write_commandfile(commandline):
+    f = open('/tmp/hpcommand.txt', 'w')
+    f.write(commandline)
+    f.close()
+
 if mqttservername:
   mqttc = mqtt.Client(mqtttopic)
-  mqttc.username_pw_set(mqttuser, mqttpassword)
+  if mqttuser:
+    mqttc.username_pw_set(mqttuser, mqttpassword)
+  mqttc.message_callback_add(mqtttopic + '/command/mode', on_message_mode)
+  mqttc.message_callback_add(mqtttopic + '/command/temp', on_message_temp)
+  mqttc.on_connect = on_connect
+  mqttc.on_message = on_message
   mqttc.connect(mqttservername)
   mqttc.loop_start()
 
@@ -74,7 +121,20 @@ while 1:
       value = re.sub('[hpcd\) %]', '', splitline[1])
       if value:
         if mqttservername:
-          mqttc.publish(mqtttopic + "/" + labels[0][2:6], value)
+          mqttc.publish(mqtttopic + "/" + labels[0][2:6], int(float(value)))
+          if labels[0][2:6] == "0203":
+            mqttc.publish(mqtttopic + "/status/temp", int(float(value)))
+          if labels[0][2:6] == "2201":
+            if int(float(value)) == 0:
+              mqttc.publish(mqtttopic + "/status/mode", "off")
+            if int(float(value)) == 10:
+              mqttc.publish(mqtttopic + "/status/mode", "auto")
+            if int(float(value)) == 20:
+              mqttc.publish(mqtttopic + "/status/mode", "heatpump")
+            if int(float(value)) == 30:
+              mqttc.publish(mqtttopic + "/status/mode", "electricity")
+            if int(float(value)) == 40:
+              mqttc.publish(mqtttopic + "/status/mode", "water")
 	if httpservername:
           url="http://" + httpservername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
           urllib2.urlopen(url).read()
