@@ -23,7 +23,7 @@ def on_connect(client, userdata, rc):
 def on_message_mode(client, userdata, msg):
     print("Received mode ")
     print(msg.topic + ": " + str(msg.payload))
-    command = msg.payload.decode("utf-8").lower()
+    command = msg.payload.decode("utf-8")
     handle_mode(command)
 
 def on_message_temp(client, userdata, msg):
@@ -38,18 +38,26 @@ def on_message(client, userdata, msg):
     print(msg.topic + ": " + str(msg.payload))
 
 def handle_mode(command):
-    if 'auto' == command:
+    if 'Auto' == command:
         print("Set mode auto")
         write_commandfile('2201 1')
-        mqttc.publish(mqtttopic + "/status/mode", "auto")
-    elif 'water' == command:
+        mqttc.publish(mqtttopic + "/status/mode", "Auto")
+    elif 'Heatpump' == command:
+        print("Set mode heatpump")
+        write_commandfile('2201 2')
+        mqttc.publish(mqtttopic + "/status/mode", "Heatpump")
+    elif 'Electricity' == command:
+        print("Set mode electricity")
+        write_commandfile('2201 3')
+        mqttc.publish(mqtttopic + "/status/mode", "Electricity")
+    elif 'Water' == command:
         print("Set mode water")
         write_commandfile('2201 4')
-        mqttc.publish(mqtttopic + "/status/mode", "water")
-    elif 'off' == command:
+        mqttc.publish(mqtttopic + "/status/mode", "Water")
+    elif 'Off' == command:
         print("Set mode off")
         write_commandfile('2201 0')
-        mqttc.publish(mqtttopic + "/status/mode", "off")
+        mqttc.publish(mqtttopic + "/status/mode", "Off")
     else:
         print("Unknown command!")
 
@@ -126,15 +134,15 @@ while 1:
             mqttc.publish(mqtttopic + "/status/temp", int(float(value)))
           if labels[0][2:6] == "2201":
             if int(float(value)) == 0:
-              mqttc.publish(mqtttopic + "/status/mode", "off")
+              mqttc.publish(mqtttopic + "/status/mode", "Off")
             if int(float(value)) == 10:
-              mqttc.publish(mqtttopic + "/status/mode", "auto")
+              mqttc.publish(mqtttopic + "/status/mode", "Auto")
             if int(float(value)) == 20:
-              mqttc.publish(mqtttopic + "/status/mode", "heatpump")
+              mqttc.publish(mqtttopic + "/status/mode", "Heatpump")
             if int(float(value)) == 30:
-              mqttc.publish(mqtttopic + "/status/mode", "electricity")
+              mqttc.publish(mqtttopic + "/status/mode", "Electricity")
             if int(float(value)) == 40:
-              mqttc.publish(mqtttopic + "/status/mode", "water")
+              mqttc.publish(mqtttopic + "/status/mode", "Water")
 	if httpservername:
           url="http://" + httpservername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
           urllib2.urlopen(url).read()
