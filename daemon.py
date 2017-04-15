@@ -155,34 +155,34 @@ print "Toggle readable output"
 ser.flushOutput()
 ser.flushInput()
 ser.write("XP\r\n")
-print  "Waiting for H1 to settle"
+#print  "Waiting for H1 to settle"
 line=ser.readline()
 print line
 line=ser.readline()
-#while line:
-#  line=ser.readline()
+while line:
+  line=ser.readline()
 
 print "Toggle heatpump specific output"
 ser.flushOutput()
 ser.flushInput()
 ser.write("XS\r\n")
-print "Waiting for H1 to settle"
+#print "Waiting for H1 to settle"
 line=ser.readline()
 print line
 line=ser.readline()
-#while line:
-#  line=ser.readline()
+while line:
+  line=ser.readline()
 
 print "Toggle scheduled full output"
 ser.flushOutput()
 ser.flushInput()
 ser.write("XM\r\n")
-print "Waiting for H1 to settle"
+#print "Waiting for H1 to settle"
 line=ser.readline()
 print line
 line=ser.readline()
-#while line:
-#  line=ser.readline()
+while line:
+  line=ser.readline()
 
 wantvalue={}
 
