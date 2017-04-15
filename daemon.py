@@ -66,6 +66,67 @@ def write_commandfile(commandline):
     f.write(commandline)
     f.close()
 
+def parseandsend(line):
+    global wantvalue
+    print line
+    splitline=line.split(' (')
+    labels=splitline[0].split(' ')
+    label=labels[4:]
+    label.insert(0,labels[0][2:6])
+    label='+'.join(label)
+    register=labels[0][2:6]
+    if label:
+      label=re.sub('/', '+', label)
+      label=re.sub(',', '', label)
+      value = re.sub('[hpcd\) %]', '', splitline[1])
+      if value:
+       if not wantvalue.has_key(register):
+        if mqttservername:
+          mqttc.publish(mqtttopic + "/" + register, int(float(value)))
+          if labels[0][2:6] == "0203":
+            mqttc.publish(mqtttopic + "/status/temp", int(float(value)))
+          if labels[0][2:6] == "2201":
+            if int(float(value)) == 0:
+              mqttc.publish(mqtttopic + "/status/mode", "Off")
+            if int(float(value)) == 10:
+              mqttc.publish(mqtttopic + "/status/mode", "Auto")
+            if int(float(value)) == 20:
+              mqttc.publish(mqtttopic + "/status/mode", "Heatpump")
+            if int(float(value)) == 30:
+              mqttc.publish(mqtttopic + "/status/mode", "Electricity")
+            if int(float(value)) == 40:
+              mqttc.publish(mqtttopic + "/status/mode", "Water")
+	if httpservername:
+          url="http://" + httpservername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
+          urllib2.urlopen(url).read()
+       return register, int(float(value))
+      else:
+        return "0000", "0"
+    else:
+      return "0000", "0"
+
+def sendtoheatpump(dataregister, value):
+    global wantvalue
+    hexvalue=format(int(float(value))*10, '04X')
+    sendcommand="XW" + dataregister + hexvalue + "\r"
+    line="something"
+    while line<>"XW01":
+      print "Writing command: " + sendcommand
+      ser.flushOutput()
+      ser.flushInput()
+      ser.write(sendcommand)
+      line=ser.readline()
+      line=re.sub('[\n\r]', '', line)
+      print line
+      if line[:4]=="XW00":
+        print "Command not accepted"
+        line="XW01"
+        return False
+    if dataregister == "2201":
+      wantvalue[dataregister] = int(float(value))*10
+    else:
+      wantvalue[dataregister] = int(float(value))      
+
 if mqttservername:
   mqttc = mqtt.Client(mqtttopic)
   if mqttuser:
@@ -91,90 +152,62 @@ while line:
   line=ser.readline()
 
 print "Toggle readable output"
+ser.flushOutput()
+ser.flushInput()
 ser.write("XP\r\n")
 print  "Waiting for H1 to settle"
 line=ser.readline()
-while line:
-  line=ser.readline()
+print line
+line=ser.readline()
+#while line:
+#  line=ser.readline()
 
 print "Toggle heatpump specific output"
+ser.flushOutput()
+ser.flushInput()
 ser.write("XS\r\n")
 print "Waiting for H1 to settle"
 line=ser.readline()
-while line:
-  line=ser.readline()
+print line
+line=ser.readline()
+#while line:
+#  line=ser.readline()
 
 print "Toggle scheduled full output"
+ser.flushOutput()
+ser.flushInput()
 ser.write("XM\r\n")
 print "Waiting for H1 to settle"
 line=ser.readline()
-while line:
-  line=ser.readline()
+print line
+line=ser.readline()
+#while line:
+#  line=ser.readline()
+
+wantvalue={}
 
 print "Start collection of data..."
-
+ser.flushOutput()
+ser.flushInput()
 while 1:
   line=ser.readline()
   line=re.sub('[\n\r]', '', line)
   if line:
-    print line
-    splitline=line.split(' (')
-    labels=splitline[0].split(' ')
-    label=labels[4:]
-    label.insert(0,labels[0][2:6])
-    label='+'.join(label)
-    if label:
-      label=re.sub('/', '+', label)
-      label=re.sub(',', '', label)
-      value = re.sub('[hpcd\) %]', '', splitline[1])
-      if value:
-        if mqttservername:
-          mqttc.publish(mqtttopic + "/" + labels[0][2:6], int(float(value)))
-          if labels[0][2:6] == "0203":
-            mqttc.publish(mqtttopic + "/status/temp", int(float(value)))
-          if labels[0][2:6] == "2201":
-            if int(float(value)) == 0:
-              mqttc.publish(mqtttopic + "/status/mode", "Off")
-            if int(float(value)) == 10:
-              mqttc.publish(mqtttopic + "/status/mode", "Auto")
-            if int(float(value)) == 20:
-              mqttc.publish(mqtttopic + "/status/mode", "Heatpump")
-            if int(float(value)) == 30:
-              mqttc.publish(mqtttopic + "/status/mode", "Electricity")
-            if int(float(value)) == 40:
-              mqttc.publish(mqtttopic + "/status/mode", "Water")
-	if httpservername:
-          url="http://" + httpservername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
-          urllib2.urlopen(url).read()
+    parseresult = parseandsend(line)
+    if wantvalue.has_key(parseresult[0]):
+      if wantvalue[parseresult[0]] == parseresult[1]:
+        del wantvalue[parseresult[0]]
+        print "Register " + parseresult[0] + " confirmed!"
+      else:
+        print "Register " + parseresult[0] + " different from requested, resending..."
+        sendtoheatpump(parseresult[0], wantvalue[parseresult[0]])
+        
   else:
+    print wantvalue
     if os.path.exists("/tmp/hpcommand.txt"):
       file = open("/tmp/hpcommand.txt", "r")
       filedata=file.read().split(' ')
-      dataregister=filedata[0]
-      datavalue=format(int(float(filedata[1]))*10, '04X')
-      sendcommand="XW" + dataregister + datavalue + "\r"
-      expectcommand="XR" + dataregister + datavalue
-      waitingreply=1
-      while waitingreply:
-        while line<>"XW01":
-          print "Writing command: " + sendcommand
-          ser.flushOutput()
-          ser.flushInput()
-          ser.write(sendcommand)
-          line=ser.readline()
-          line=re.sub('[\n\r]', '', line)
-          print line
-	  if line[:4]=="XW00":
-            waitingreply=0
-            line="XW01"
-        while (line and waitingreply):
-          line=ser.readline()
-          line=re.sub('[\n\r]', '', line)
-          print "Received line " + line[:10] + " (Wanted " + expectcommand + ")"
-          if line[:10] == expectcommand:
-            waitingreply=0
-            print "Received reply " + line[:10]
-
+      sendtoheatpump(filedata[0], filedata[1])
       file.close()
       call(["rm", "/tmp/hpcommand.txt"])
 
