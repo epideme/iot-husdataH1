@@ -62,11 +62,6 @@ def handle_mode(command):
     else:
         print("Unknown command!")
 
-def write_commandfile(commandline):
-    f = open('/tmp/hpcommand.txt', 'w')
-    f.write(commandline)
-    f.close()
-
 def parseandsend(line):
     global wantvalue
     print line
@@ -136,7 +131,6 @@ def reseth1():
   print "Sending reset"
   ser.write("!\r\n")
   
-
 if mqttservername:
   mqttc = mqtt.Client(mqtttopic)
   if mqttuser:
@@ -151,7 +145,7 @@ if mqttservername:
 ser = serial.Serial(
   port='/dev/serial0',
   baudrate = 19200,
-  timeout=5
+  timeout=10
 )
 
 time.sleep(1)
