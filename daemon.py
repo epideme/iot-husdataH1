@@ -92,7 +92,7 @@ def parseandsend(line):
               mqttc.publish(mqtttopic + "/status/mode", "Electricity")
             if int(float(value)) == 40:
               mqttc.publish(mqtttopic + "/status/mode", "Water")
-	if httpservername:
+        if httpservername:
           url="http://" + httpservername + "/iot/iotstore.php?id=HeatPump+" + label + "&set=" + value
           urllib2.urlopen(url).read()
        return register, int(float(value))
