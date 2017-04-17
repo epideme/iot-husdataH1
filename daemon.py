@@ -43,7 +43,7 @@ def on_message_mode(client, userdata, msg):
 
 # Define command to handle callback for when MQTT command "temp" arrives.
 # Tell us and confirm on MQTT, then call sendtoheatpump to set the new room value.
-def on_message_temp(client, userdata, msg):.
+def on_message_temp(client, userdata, msg):
     print("Received temp ")
     print(msg.topic + ": " + str(msg.payload))
     command = msg.payload.decode("utf-8").lower()
