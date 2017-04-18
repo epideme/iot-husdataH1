@@ -241,8 +241,10 @@ while 1:
                 if wantvalue.has_key(parseresult[0]):
                     if wantvalue[parseresult[0]] == parseresult[1]:
                         # Data received matches. No more check needed. Delete from dictionary.
+                        # Also run the line again, because parseandsend() skipped last send pending check.
                         del wantvalue[parseresult[0]]
                         print "Register " + parseresult[0] + " confirmed!"
+                        parseandsend(line)
                     else:
                         # Data received does not match. Resend command to heatpump.
                         print "Register " + parseresult[0] + " different from requested, resending..."
