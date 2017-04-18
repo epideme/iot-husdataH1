@@ -50,6 +50,14 @@ def on_message_temp(client, userdata, msg):
     mqttc.publish(mqtttopic + "/status/temp", int(float(command)))
     sendtoheatpump('0203', int(float(command)))
 
+# Define command to handle callback for when MQTT command "curve" arrives.
+def on_message_curve(client, userdata, msg):
+    print("Received curve ")
+    print(msg.topic + ": " + str(msg.payload))
+    command = msg.payload.decode("utf-8").lower()
+    mqttc.publish(mqtttopic + "/status/curve", int(float(command)))
+    sendtoheatpump('0205', int(float(command)))
+
 # Define command to handle callback for when other commands arrive on MQTT. We ignore these.
 def on_message(client, userdata, msg):
     print("Received unknown command ")
@@ -109,9 +117,11 @@ def parseandsend(line):
                 if mqttservername:
                     mqttc.publish(mqtttopic + "/" + register, int(float(value)))
                     # That one there sent the raw register as an MQTT topic.
-                    # Now if the line is temp or mode, send those in a friendlier way.
+                    # Now if the line is temp, curve or mode, send those in a friendlier way.
                     if labels[0][2:6] == "0203":
                         mqttc.publish(mqtttopic + "/status/temp", int(float(value)))
+                    if labels[0][2:6] == "0205":
+                        mqttc.publish(mqtttopic + "/status/curve", int(float(value)))
                     if labels[0][2:6] == "2201":
                         if int(float(value)) == 0:
                             mqttc.publish(mqtttopic + "/status/mode", "Off")
@@ -190,6 +200,7 @@ if mqttservername:
         mqttc.username_pw_set(mqttuser, mqttpassword)
     mqttc.message_callback_add(mqtttopic + '/command/mode', on_message_mode)
     mqttc.message_callback_add(mqtttopic + '/command/temp', on_message_temp)
+    mqttc.message_callback_add(mqtttopic + '/command/curve', on_message_curve)
     mqttc.on_connect = on_connect
     mqttc.on_message = on_message
     mqttc.connect(mqttservername)
