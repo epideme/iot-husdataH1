@@ -248,7 +248,13 @@ while 1:
                     else:
                         # Data received does not match. Resend command to heatpump.
                         print "Register " + parseresult[0] + " different from requested, resending..."
-                        sendtoheatpump(parseresult[0], wantvalue[parseresult[0]])
+                        # Workaround: 2201 is annoying. The compared value is actually 10 times the value we want to resend.
+                        # I should probably rethink the handling of 2201 wantvalue. It's a bit of a mess. 
+                        if parseresult[0] == "2201":
+                            sendtoheatpump(parseresult[0], int(float(wantvalue[parseresult[0]])/10))
+                        else:
+                            sendtoheatpump(parseresult[0], wantvalue[parseresult[0]])
+
     else:
         # No line was received from H1 interface. Use this time to do other things.
         if wantvalue:
